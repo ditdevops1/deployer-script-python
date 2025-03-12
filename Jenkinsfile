@@ -12,7 +12,7 @@ pipeline {
 
         stage('Run Script') {
             steps {
-                sh 'python app.py'
+                bat 'python app.py'
             }
         }
 
