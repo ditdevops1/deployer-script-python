@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-
     stages {
         stage('Checkout') {
             steps {
@@ -9,30 +8,51 @@ pipeline {
             }
         }
 
-
         stage('Run Script') {
             steps {
                 bat 'python app.py'
             }
         }
-
-        stage('Notify') {
-            steps {
-                script {
-                    def result = currentBuild.result ?: 'SUCCESS'
-                    emailext subject: "Jenkins Build: ${result}",
-                        body: "Build Status: ${result}\nVoir Jenkins: ${env.BUILD_URL}",
-                        to: 'ditdevops1@gmail.com'
-                }
-            }
-        }
     }
 
     post {
+        success {
+            script {
+                emailext subject: "Jenkins Build SUCCESS - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """<p><b>Build SUCCESS</b></p>
+                            <p>Job Name: ${env.JOB_NAME}</p>
+                            <p>Build Number: ${env.BUILD_NUMBER}</p>
+                            <p><a href="${env.BUILD_URL}">Voir le détail</a></p>""",
+                    recipientProviders: [[$class: 'RequesterRecipientProvider']],
+                    to: 'ditdevops1@gmail.com',
+                    mimeType: 'text/html'
+            }
+        }
+
         failure {
-            emailext subject: "Échec du build Jenkins",
-                body: "Échec du pipeline : ${env.BUILD_URL}",
-                to: 'ditdevops1@gmail.com'
+            script {
+                emailext subject: "Jenkins Build FAILURE - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """<p><b>Build FAILURE</b></p>
+                            <p>Job Name: ${env.JOB_NAME}</p>
+                            <p>Build Number: ${env.BUILD_NUMBER}</p>
+                            <p><a href="${env.BUILD_URL}">Voir le détail</a></p>""",
+                    recipientProviders: [[$class: 'RequesterRecipientProvider']],
+                    to: 'ditdevops1@gmail.com',
+                    mimeType: 'text/html'
+            }
+        }
+
+        always {
+            script {
+                emailext subject: "Jenkins Build COMPLETED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """<p><b>Build Completed</b></p>
+                            <p>Job Name: ${env.JOB_NAME}</p>
+                            <p>Build Number: ${env.BUILD_NUMBER}</p>
+                            <p><a href="${env.BUILD_URL}">Voir le détail</a></p>""",
+                    recipientProviders: [[$class: 'RequesterRecipientProvider']],
+                    to: 'ditdevops1@gmail.com',
+                    mimeType: 'text/html'
+            }
         }
     }
 }
